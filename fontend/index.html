@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../backend/public/css/app.css">
+    <title>larest-api</title>
+    <style>
+        .red{
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">larest-api</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      
+        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+          <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Link <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Another Link</a>
+            </li>
+            <li class="nav-item active">
+              <a class="nav-link" href="#">Even more Links</a>
+            </li>
+          </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Add item</h1>
+        <form id="itemForm">
+            <div class="form-group">
+                <label for="">Text</label>
+                <input type="text" id="text" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="">Body</label>
+                <textarea type="text" id="body" class="form-control"></textarea>
+            </div>
+            <input type="submit" value="Add" class="btn btn-primary">
+        </form>
+        <hr>
+        <ul class="list-group" id="items"></ul>
+    </div>
+    <script src="./jquery.min.js"></script>
+    <script>
+         $(document).ready(()=>{
+             getItems(); // install in back end composer require barryvdh/laravel-cors
+                        // then navigate to backend/config/app.php - uncomment line 178
+                        // then navigate to backend/app/http/kernel.php - uncomment line 24
+
+            // submit event
+            $('#itemForm').on('submit', (e)=>{
+                e.preventDefault();
+
+                let text = $('#text').val();
+                let body = $('#body').val();
+                
+                addItem(text, body)
+            })
+
+            // delete item
+            $('body').on('click', '.red', (e)=>{
+                e.preventDefault();
+                let id = $(this).data('id')
+                deleteItem(id);
+            })
+
+            // delete item using api
+            function deleteItem(id){
+                $.ajax({
+                    method:'post',
+                    url:'http://localhost:8000/api/items/'+id,
+                    data: {_method: 'DELETE'}
+                }).done((item) =>{
+                    alert('Item REMOVED');
+                    location.reload();
+                });
+            }
+
+            // insert items using api
+            function addItem(text, body){
+                $.ajax({
+                    method:'post',
+                    url:'http://localhost:8000/api/items',
+                    data: {text: text, body: body}
+                }).done((item) =>{
+                    alert('Item #'+item.id+'added');
+                    location.reload();
+                });
+            }
+
+
+            //  get items from api
+            function getItems(){
+                $.ajax({
+                    url:'http://localhost:8000/api/items'
+                }).done((items) =>{
+                    let output = ''
+                    $.each(items, (key, item) =>{
+                        output += `
+                            <li class="list-group-item">
+                                <strong> ${item.text}:</strong>${item.body}<a href="#" class="red" data-id="${item.id}">Delete</a>
+                            </li>
+                        `;
+                    });
+                    $('#items').append(output);
+                });
+            }
+        })
+    </script>
+</body>
+</html>
